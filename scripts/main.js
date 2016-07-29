@@ -7,6 +7,7 @@ var groundCollisionRaycaster;
 
 var prevTime = performance.now();
 var velocity = new THREE.Vector3();
+var canJump = false;
 
 var controlsEnabled = false;
 
@@ -87,6 +88,9 @@ function begin() {
     document.body.appendChild(renderer.domElement);
 
     window.addEventListener('resize', onWindowResize, false);
+    document.addEventListener('keydown', function (event) {
+	if (event.keyCode == 32) jump();
+    }, false);
     
     camera.position.z = 5;
 
@@ -95,6 +99,10 @@ function begin() {
     populate(scene);
 }
 
+function jump() {
+    if (canJump) velocity.y += 200;
+    canJump = false;
+}
 
 function populate(scene) {
     //Floor
@@ -103,7 +111,7 @@ function populate(scene) {
     var floorMaterial = new THREE.MeshBasicMaterial({ color: 0x00a010 });
     var floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
 
-    objects.push(floorMesh);
+    //objects.push(floorMesh);
     scene.add(floorMesh);
 
     //Light
@@ -124,6 +132,9 @@ function populate(scene) {
     cubeMesh.position.x = 20;
     cubeMesh.position.y = 2;
     cubeMesh.position.z = 10;
+    
+    objects.push(cubeMesh);
+    scene.add(cubeMesh);
 
     //Question mark
     var loader = new THREE.ColladaLoader();
@@ -134,11 +145,15 @@ function populate(scene) {
 	importedScene.translateY(10);
 	importedScene.scale.x = importedScene.scale.y = importedScene.scale.z = 10;
 	importedScene.updateMatrix();
+
+	importedScene.traverse(function(node){
+	    if (node instanceof THREE.Mesh)
+		objects.push(node);
+	});
+
 	scene.add(importedScene);
     });
 
-    objects.push(cubeMesh);
-    scene.add(cubeMesh);
 }
 
 function render() {
@@ -156,15 +171,20 @@ function render() {
 	velocity.x -= velocity.x * 10.0 * delta;
 	velocity.z -= velocity.z * 10.0 * delta;
 
+	velocity.y -= 9.8 * 45 * delta;
+
 	if (wPressed) velocity.z -= 400.0 * delta;
 	if (sPressed) velocity.z += 400.0 * delta;
 
 	if (aPressed) velocity.x -= 400.0 * delta;
 	if (dPressed) velocity.x += 400.0 * delta;
 
-	if (isOnObject || controls.getObject().position.y < 10) {
+	if (isOnObject || controls.getObject().position.y <= 10) {
 	    velocity.y = Math.max( 0, velocity.y );
+	    canJump = true;
 	}
+
+	if (controls.getObject().position.y <= 10) controls.getObject().position.y = 10;
 	
 	controls.getObject().translateX(velocity.x * delta );
 	controls.getObject().translateY(velocity.y * delta );
