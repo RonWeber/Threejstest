@@ -2,6 +2,8 @@ var FOV = 75;
 var scene;
 var camera;
 var renderer;
+var controls;
+var clock = new THREE.Clock();
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -22,8 +24,16 @@ function begin() {
     
     camera.position.z = 5;
     camera.position.x = -20;
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+    controls = new THREE.TrackballControls(camera, renderer.domElement);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+    controls.noZoom = false;
+    controls.noPan = false;
+    controls.staticMoving = true;
+    controls.keys = [ 65, 83, 68 ];
+    
     populate(scene);
 }
 
@@ -46,6 +56,9 @@ function populate(scene) {
 function render() {
     requestAnimationFrame(render);
 
+    var delta = clock.getDelta();
+    controls.update(delta);
+    
     renderer.render(scene, camera);
 }
 
@@ -58,6 +71,7 @@ function submitButtonClick() {
 	importedScene.rotateX(-Math.PI/2);
 	importedScene.scale.x = importedScene.scale.y = importedScene.scale.z = 10;
 	importedScene.updateMatrix();
+
 	scene.add(importedScene);
     });
 	
