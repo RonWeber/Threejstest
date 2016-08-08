@@ -21,6 +21,8 @@ function begin() {
     window.addEventListener('resize', onWindowResize, false);
     
     camera.position.z = 5;
+    camera.position.x = -20;
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     populate(scene);
 }
@@ -47,6 +49,20 @@ function render() {
     renderer.render(scene, camera);
 }
 
+function submitButtonClick() {
+    var fileInput = document.getElementById("fileName");
+    var file = fileInput.files[0];
+    var loader = new THREE.ColladaLoader();
+    loader.loadLocal(file, function(collada) {
+	importedScene = collada.scene;
+	importedScene.rotateX(-Math.PI/2);
+	importedScene.scale.x = importedScene.scale.y = importedScene.scale.z = 10;
+	importedScene.updateMatrix();
+	scene.add(importedScene);
+    });
+	
+}
 
+document.getElementById("submitButton").addEventListener("click", submitButtonClick);
 begin();
 render();
